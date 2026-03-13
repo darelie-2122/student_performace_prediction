@@ -8,50 +8,56 @@ Original file is located at
 """
 
 import streamlit as st
-import numpy as np
-import pickle
+import pandas as pd
+import joblib
 
-# Load trained model
-model = pickle.load(open("model.pkl","rb"))
+# load model and encoder
+model = joblib.load("student_performance_model.pkl")
+encoder = joblib.load("label_encoder_gender.pkl")
 
-st.title("📊 Student Performance Prediction System")
+st.title("🎓 Student Performance Prediction")
 
-st.write("This system predicts the **Current Semester CGPA** based on student lifestyle and study habits.")
+st.write("Enter student details to predict Current Semester CGPA")
 
-st.subheader("Enter Student Details")
+age = st.number_input("Enter Age",15,30)
 
-age = st.number_input("Age",15,30)
-gender = st.selectbox("Select your Gender",encoder["Gender"].classes_)
-screen = st.number_input("Daily Screen Time (hours)",0.0,15.0)
-social = st.number_input("Social Media Hours",0.0,10.0)
-online = st.number_input("Online Study Hours",0.0,10.0)
-gaming = st.number_input("Gaming Hours",0.0,10.0)
-sleep = st.number_input("Sleep Hours",0.0,12.0)
+gender = st.selectbox("Select Gender",encoder.classes_)
+
+daily_screen_time = st.number_input("Daily Screen Time Hours",0.0,15.0)
+
+social_media_hours = st.number_input("Social Media Hours",0.0,10.0)
+
+online_study_hours = st.number_input("Online Study Hours",0.0,10.0)
+
+gaming_hours = st.number_input("Gaming Hours",0.0,10.0)
+
+sleep_hours = st.number_input("Sleep Hours",0.0,12.0)
+
 attendance = st.number_input("Attendance Percentage",0.0,100.0)
-offline = st.number_input("Offline Study Hours",0.0,10.0)
-previous = st.number_input("Previous Semester CGPA",0.0,10.0)
+
+offline_study_hours = st.number_input("Offline Study Hours",0.0,10.0)
+
+previous_cgpa = st.number_input("Previous Semester CGPA",0.0,10.0)
+
+# create dataframe
+df = pd.DataFrame({
+    "Age":[age],
+    "Gender":[gender],
+    "daily_screen_time_hours":[daily_screen_time],
+    "social_media_hours":[social_media_hours],
+    "online_study_hours":[online_study_hours],
+    "gaming_hours":[gaming_hours],
+    "sleep_hours":[sleep_hours],
+    "attendance_percentage":[attendance],
+    "offline_study_hours":[offline_study_hours],
+    "previous_sem_CGPA":[previous_cgpa]
+})
 
 if st.button("Predict CGPA"):
 
-    input_data = np.array([[age,screen,social,online,gaming,sleep,attendance,offline,previous]])
+    # encode gender
+    df["Gender"] = encoder.transform(df["Gender"])
 
-    prediction = model.predict(input_data)
+    prediction = model.predict(df)
 
-    st.success(f"🎓 Predicted Current Semester CGPA: {prediction[0]:.2f}")
-
-    st.subheader("📈 Interpretation of Factors")
-
-    if online + offline > 6:
-        st.write("✅ Higher study hours positively influence CGPA.")
-
-    if social > 4:
-        st.write("⚠️ Excessive social media usage may negatively affect academic performance.")
-
-    if gaming > 4:
-        st.write("⚠️ Too much gaming can reduce study time.")
-
-    if sleep < 6:
-        st.write("⚠️ Less sleep may affect concentration and performance.")
-
-    if attendance > 80:
-        st.write("✅ Good attendance improves academic performance.")
+    st.success(f"Predicted Current Semester CGPA: {prediction[0]:.2f}")
