@@ -50,12 +50,23 @@ if st.button("Predict CGPA"):
         "previous_sem_CGPA":[previous]
     })
 
-    # Encode gender
+      # Encode gender
     df["Gender"] = encoder["Gender"].transform(df["Gender"])
 
-    prediction = model.predict(df)
+    # Prediction
+    prediction = model.predict(df)[0]
 
-    st.success(f"🎓 Predicted Current Semester CGPA: {prediction[0]:.2f}")
+    st.success(f"🎓 Predicted Current Semester CGPA: **{prediction:.2f}**")
+
+    # Performance level
+    if prediction >= 8:
+        st.info("🏆 Performance Level: Excellent")
+    elif prediction >= 6:
+        st.info("👍 Performance Level: Good")
+    else:
+        st.info("⚠️ Performance Level: Needs Improvement")
+
+    st.divider()
 
     st.subheader("📈 Interpretation of Factors")
 
@@ -69,7 +80,7 @@ if st.button("Predict CGPA"):
         st.write("⚠️ Too much gaming can reduce study time.")
 
     if sleep < 6:
-        st.write("⚠️ Less sleep may affect concentration and performance.")
+        st.write("⚠️ Less sleep may affect concentration and academic performance.")
 
     if attendance > 80:
-        st.write("✅ Good attendance improves academic performance.")
+        st.write("✅ Good attendance significantly improves academic performance.")
